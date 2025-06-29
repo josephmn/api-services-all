@@ -1,0 +1,13 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: api-services-all
+    version: "@project.version@"
+  output:
+    ansi:
+      enabled: ALWAYS
+logging:
+  level:
+    root: INFO
