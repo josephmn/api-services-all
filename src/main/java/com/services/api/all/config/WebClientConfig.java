@@ -14,4 +14,11 @@ public class WebClientConfig {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
+
+    @Bean
+    public WebClient aguaCaneteWebClient(WebClient.Builder builder) {
+        return WebClient.builder()
+                .baseUrl("https://aguacanete.com")
+                .build();
+    }
 }

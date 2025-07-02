@@ -18,7 +18,7 @@ import static com.services.api.all.util.BillingMapper.mapToBillingResponse;
 @RequiredArgsConstructor
 public class LuzDelSurServiceImpl implements LuzDelSurService {
 
-    private final WebClient webClient;
+    private final WebClient luzDelSurWebClient;
 
     @Override
     public Mono<LoginResponse> login(LoginRequest login) {
@@ -29,7 +29,7 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
         request.put("Plataforma", "WEB");
         requestBody.put("request", request);
 
-        return webClient.post()
+        return luzDelSurWebClient.post()
                 .uri("/es/Login/ValidarAcceso")
                 .bodyValue(requestBody.toString())
                 .retrieve()
@@ -51,13 +51,13 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
     }
 
     @Override
-    public Mono<AccountStatementResponse> getAccountStatement(String supply) {
+    public Mono<LightAccountStatementResponse> getAccountStatement(String supply) {
         JSONObject body = new JSONObject();
         JSONObject request = new JSONObject();
         request.put("Suministro", supply);
         body.put("request", request);
 
-        return webClient.post()
+        return luzDelSurWebClient.post()
                 .uri("/es/EstadoCuenta/ObtenerEstadoCuentaLibre")
                 .header("Content-Type", "application/json")
                 .bodyValue(body.toString())
@@ -89,7 +89,7 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
         request.put("CorrFacturacion", ticket.getCorrelativo());
         body.put("request", request);
 
-        return webClient.post()
+        return luzDelSurWebClient.post()
                 .uri("/es/InformacionGuardada/ObtenerBoletaPorMes")
                 .header("Content-Type", "application/json")
                 .bodyValue(body.toString())
@@ -123,7 +123,7 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
         request.put("Suministro", billingRequest.getSuministro());
         body.put("request", request);
 
-        return webClient.post()
+        return luzDelSurWebClient.post()
                 .uri("/es/InformacionGuardada/ObtenerUltimaFacturacion")
                 .header("Content-Type", "application/json")
                 .bodyValue(body.toString())

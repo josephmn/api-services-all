@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 @RestController
 @RequestMapping("/api/v1/luzdelsur")
 @RequiredArgsConstructor
-public class ControllerLuzDelSur {
+public class LuzDelSurController {
 
     private final LuzDelSurService luzDelSurService;
 
@@ -29,7 +29,7 @@ public class ControllerLuzDelSur {
     }
 
     @PostMapping("/accountStatement/{supply}")
-    public Mono<ResponseEntity<AccountStatementResponse>> getTicket(@PathVariable String supply) {
+    public Mono<ResponseEntity<LightAccountStatementResponse>> getLightAccountStatement(@PathVariable String supply) {
         return this.luzDelSurService.getAccountStatement(supply)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build())

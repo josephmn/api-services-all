@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountStatementResponse {
+public class LightAccountStatementResponse {
 
     private String nombre;
     private String suministro;

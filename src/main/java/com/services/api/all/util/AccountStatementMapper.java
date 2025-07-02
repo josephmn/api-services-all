@@ -1,6 +1,6 @@
 package com.services.api.all.util;
 
-import com.services.api.all.dto.AccountStatementResponse;
+import com.services.api.all.dto.LightAccountStatementResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -11,8 +11,8 @@ import java.util.List;
 
 public class AccountStatementMapper {
 
-    public static AccountStatementResponse mapToAccountStatementResponse(JSONObject datos) {
-        AccountStatementResponse response = new AccountStatementResponse();
+    public static LightAccountStatementResponse mapToAccountStatementResponse(JSONObject datos) {
+        LightAccountStatementResponse response = new LightAccountStatementResponse();
 
         response.setNombre(datos.optString("nombre"));
         response.setSuministro(datos.optString("suministro"));
@@ -20,12 +20,12 @@ public class AccountStatementMapper {
         response.setDireccion(datos.optString("direccion"));
 
         JSONArray estadoCuentaArray = datos.optJSONArray("estadoCuenta");
-        List<AccountStatementResponse.EstadoCuenta> estadoCuentaList = new ArrayList<>();
+        List<LightAccountStatementResponse.EstadoCuenta> estadoCuentaList = new ArrayList<>();
 
         if (estadoCuentaArray != null) {
             for (int i = 0; i < estadoCuentaArray.length(); i++) {
                 JSONObject item = estadoCuentaArray.getJSONObject(i);
-                AccountStatementResponse.EstadoCuenta estado = new AccountStatementResponse.EstadoCuenta();
+                LightAccountStatementResponse.EstadoCuenta estado = new LightAccountStatementResponse.EstadoCuenta();
 
                 estado.setCorrFacturacion(item.getInt("corrFacturacion"));
                 estado.setFechaLectura(parseDate(item.optString("fechaLectura")));
