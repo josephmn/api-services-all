@@ -1,15 +1,26 @@
 package com.services.api.all.util;
 
-import com.services.api.all.dto.BillingResponse;
-import org.json.JSONObject;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import org.json.JSONObject;
+import com.services.api.all.dto.BillingResponse;
 
+/**
+ * Utility class to map JSON data to BillingResponse objects.
+ *
+ * @author Joseph Magallanes
+ * @since 2025-07-03
+ */
 public class BillingMapper {
 
+    /**
+     * Maps a JSONObject containing billing data to a BillingResponse object.
+     *
+     * @param datos the JSONObject containing billing data
+     * @return a BillingResponse object populated with the data from the JSONObject
+     */
     public static BillingResponse mapToBillingResponse(JSONObject datos) {
-        BillingResponse.Facturacion facturacion = new BillingResponse.Facturacion(
+        final BillingResponse.Facturacion facturacion = new BillingResponse.Facturacion(
                 datos.optString("ultimaFacturacion"),
                 datos.optDouble("consumoEnergia"),
                 datos.optDouble("otrosConceptos"),
@@ -19,14 +30,14 @@ public class BillingMapper {
                 datos.optDouble("totalPagar")
         );
 
-        String fechaUltimoPagoStr = datos.optString("fechaUltimoPago", null);
+        final String fechaUltimoPagoStr = datos.optString("fechaUltimoPago", null);
         LocalDate fechaUltimoPago = null;
         if (fechaUltimoPagoStr != null && !fechaUltimoPagoStr.isEmpty()) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             fechaUltimoPago = LocalDate.parse(fechaUltimoPagoStr, formatter);
         }
 
-        BillingResponse.Other other = new BillingResponse.Other(
+        final BillingResponse.Other other = new BillingResponse.Other(
                 fechaUltimoPago,
                 datos.optDouble("saldoPendiente"),
                 datos.optDouble("deudaVencida")

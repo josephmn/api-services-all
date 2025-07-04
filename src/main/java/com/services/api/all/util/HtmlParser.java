@@ -1,42 +1,63 @@
 package com.services.api.all.util;
 
-import com.services.api.all.dto.WaterAccountStatementResponse;
+import static com.services.api.all.util.Constant.POSITIOON_DEUDA;
+import static com.services.api.all.util.Constant.POSITIOON_ESTADO;
+import static com.services.api.all.util.Constant.POSITIOON_FACTURACIION;
+import static com.services.api.all.util.Constant.POSITIOON_NUMERO;
+import static com.services.api.all.util.Constant.POSITIOON_PERIODO;
+import static com.services.api.all.util.Constant.POSITIOON_SERIE;
+import static com.services.api.all.util.Constant.POSITIOON_URL_RECIBO;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import com.services.api.all.dto.WaterAccountStatementResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Class to extract water bill information from HTML.
+ *
+ * @author Joseph Magallanes
+ * @since 2025-07-03
+ */
 public class HtmlParser {
-    public static List<WaterAccountStatementResponse> extraerRecibos(String html) {
-        List<WaterAccountStatementResponse> recibos = new ArrayList<>();
 
-        Document doc = Jsoup.parse(html);
+    /**
+     * Extracts water bill information from the provided HTML string.
+     *
+     * @param html The HTML content as a string.
+     * @return A list of WaterAccountStatementResponse objects containing the extracted data.
+     */
+    public static List<WaterAccountStatementResponse> extractReceipts(String html) {
+        final List<WaterAccountStatementResponse> receipts = new ArrayList<>();
 
-        Element tabla = doc.selectFirst("div.card-header:contains(12 ÚLTIMOS RECIBOS FACTURADOS)")
+        final Document doc = Jsoup.parse(html);
+
+        final Element table = doc.selectFirst("div.card-header:contains(12 ÚLTIMOS RECIBOS FACTURADOS)")
                 .parent() // div.card
                 .selectFirst("table");
 
-        if (tabla != null) {
-            Elements filas = tabla.select("tbody tr");
+        if (table != null) {
+            final Elements rows = table.select("tbody tr");
 
-            for (Element fila : filas) {
-                Elements celdas = fila.select("td, th");
+            for (Element fila : rows) {
+                final Elements cells = fila.select("td, th");
 
-                int numero = Integer.parseInt(celdas.get(0).text().trim());
-                String facturacion = celdas.get(1).text().trim();
-                String serie = celdas.get(2).text().trim();
-                String periodo = celdas.get(3).text().trim();
-                String estado = celdas.get(4).text().trim();
-                String deuda = celdas.get(5).text().trim();
-                String urlRecibo = celdas.get(6).selectFirst("a[href]").attr("href");
+                final int numero = Integer.parseInt(cells.get(POSITIOON_NUMERO).text().trim());
+                final String facturacion = cells.get(POSITIOON_FACTURACIION).text().trim();
+                final String serie = cells.get(POSITIOON_SERIE).text().trim();
+                final String periodo = cells.get(POSITIOON_PERIODO).text().trim();
+                final String estado = cells.get(POSITIOON_ESTADO).text().trim();
+                final String deuda = cells.get(POSITIOON_DEUDA).text().trim();
+                final String urlRecibo = cells.get(POSITIOON_URL_RECIBO).selectFirst("a[href]").attr("href");
 
-                recibos.add(new WaterAccountStatementResponse(numero, facturacion, serie, periodo, estado, deuda, urlRecibo));
+                receipts.add(new WaterAccountStatementResponse(
+                        numero, facturacion, serie, periodo, estado, deuda, urlRecibo));
             }
         }
 
-        return recibos;
+        return receipts;
     }
 }

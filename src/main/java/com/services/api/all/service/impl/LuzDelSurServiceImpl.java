@@ -1,19 +1,31 @@
 package com.services.api.all.service.impl;
 
-import com.services.api.all.dto.*;
-import com.services.api.all.service.LuzDelSurService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
-import org.json.JSONObject;
-
-import java.util.Base64;
-
 import static com.services.api.all.util.AccountStatementMapper.mapToAccountStatementResponse;
 import static com.services.api.all.util.BillingMapper.mapToBillingResponse;
 
+import java.util.Base64;
+import org.json.JSONObject;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import com.services.api.all.dto.BillingRequest;
+import com.services.api.all.dto.BillingResponse;
+import com.services.api.all.dto.LightAccountStatementResponse;
+import com.services.api.all.dto.LoginRequest;
+import com.services.api.all.dto.LoginResponse;
+import com.services.api.all.dto.TicketRequest;
+import com.services.api.all.service.LuzDelSurService;
+import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
+/**
+ * LuzDelSurServiceImpl is the implementation of the LuzDelSurService interface.
+ * It provides methods to interact with the Luz del Sur API for user login,
+ * account statements, PDF retrieval, and billing information.
+ *
+ * @author Joseph Magallanes
+ * @since 2025-07-03
+ */
 @Service
 @RequiredArgsConstructor
 public class LuzDelSurServiceImpl implements LuzDelSurService {
@@ -21,9 +33,9 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
     private final WebClient luzDelSurWebClient;
 
     @Override
-    public Mono<LoginResponse> login(LoginRequest login) {
-        JSONObject requestBody = new JSONObject();
-        JSONObject request = new JSONObject();
+    public Mono<LoginResponse> getLogin(LoginRequest login) {
+        final JSONObject requestBody = new JSONObject();
+        final JSONObject request = new JSONObject();
         request.put("Correo", login.getCorreo());
         request.put("password", login.getContrasenia());
         request.put("Plataforma", "WEB");
@@ -35,14 +47,16 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .map(response -> {
-                    JSONObject jsonResponse = new JSONObject(response);
+                    final JSONObject jsonResponse = new JSONObject(response);
                     if (jsonResponse.has("datos")) {
-                        JSONObject datos = jsonResponse.getJSONObject("datos");
-                        String codigo = datos.optString("codigo");
+                        final JSONObject datos = jsonResponse.getJSONObject("datos");
+                        final String codigo = datos.optString("codigo");
                         if ("0".equals(codigo)) {
                             return new LoginResponse(true, datos.getString("token"), null);
-                        } else {
-                            return new LoginResponse(false, null, datos.optString("mensajeUsuario", "Error desconocido"));
+                        }
+                        else {
+                            return new LoginResponse(false, null, datos.optString(
+                                    "mensajeUsuario", "Error desconocido"));
                         }
                     }
                     return new LoginResponse(false, null, "Respuesta inválida");
@@ -52,8 +66,8 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
 
     @Override
     public Mono<LightAccountStatementResponse> getAccountStatement(String supply) {
-        JSONObject body = new JSONObject();
-        JSONObject request = new JSONObject();
+        final JSONObject body = new JSONObject();
+        final JSONObject request = new JSONObject();
         request.put("Suministro", supply);
         body.put("request", request);
 
@@ -64,27 +78,30 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(response -> {
-                    JSONObject jsonResponse = new JSONObject(response);
+                    final JSONObject jsonResponse = new JSONObject(response);
                     if (jsonResponse.getBoolean("success") && jsonResponse.has("datos")) {
-                        JSONObject datos = jsonResponse.getJSONObject("datos");
-                        String codigo = datos.optString("codigo");
+                        final JSONObject datos = jsonResponse.getJSONObject("datos");
+                        final String codigo = datos.optString("codigo");
                         if ("0".equals(codigo)) {
                             return Mono.just(mapToAccountStatementResponse(datos));
-                        } else {
-                            String mensaje = datos.optString("mensajeUsuario", "Error desconocido");
+                        }
+                        else {
+                            final String mensaje = datos.optString("mensajeUsuario", "Error desconocido");
                             return Mono.error(new RuntimeException(mensaje));
                         }
-                    } else {
+                    }
+                    else {
                         return Mono.error(new RuntimeException("Respuesta inválida del servidor"));
                     }
                 })
-                .onErrorResume(e -> Mono.error(new RuntimeException("Error al obtener facturación: " + e.getMessage(), e)));
+                .onErrorResume(e -> Mono.error(new RuntimeException(
+                        "Error al obtener facturación: " + e.getMessage(), e)));
     }
 
     @Override
     public Mono<byte[]> getPdf(TicketRequest ticket) {
-        JSONObject body = new JSONObject();
-        JSONObject request = new JSONObject();
+        final JSONObject body = new JSONObject();
+        final JSONObject request = new JSONObject();
         request.put("Suministro", ticket.getSuministro());
         request.put("CorrFacturacion", ticket.getCorrelativo());
         body.put("request", request);
@@ -96,28 +113,31 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(response -> {
-                    JSONObject jsonResponse = new JSONObject(response);
+                    final JSONObject jsonResponse = new JSONObject(response);
                     if (jsonResponse.optBoolean("success") && jsonResponse.has("datos")) {
-                        JSONObject datos = jsonResponse.getJSONObject("datos");
+                        final JSONObject datos = jsonResponse.getJSONObject("datos");
                         if ("0".equals(datos.optString("codigo"))) {
-                            String archivoBase64 = datos.getString("archivoBase64");
-                            byte[] pdfBytes = Base64.getDecoder().decode(archivoBase64);
+                            final String archivoBase64 = datos.getString("archivoBase64");
+                            final byte[] pdfBytes = Base64.getDecoder().decode(archivoBase64);
                             return Mono.just(pdfBytes);
-                        } else {
-                            return Mono.error(new RuntimeException(datos.optString("mensajeUsuario", "Error desconocido")));
+                        }
+                        else {
+                            return Mono.error(new RuntimeException(datos.optString(
+                                    "mensajeUsuario", "Error desconocido")));
                         }
                     }
                     return Mono.error(new RuntimeException("Respuesta inválida del servidor"));
                 })
                 .onErrorResume(WebClientResponseException.class,
-                        e -> Mono.error(new RuntimeException("HTTP error: " + e.getRawStatusCode())))
+                        e -> Mono.error(new RuntimeException(
+                                "HTTP error: " + e.getRawStatusCode())))
                 .onErrorResume(e -> Mono.error(new RuntimeException("Error: " + e.getMessage())));
     }
 
     @Override
     public Mono<BillingResponse> getLastBilling(BillingRequest billingRequest) {
-        JSONObject body = new JSONObject();
-        JSONObject request = new JSONObject();
+        final JSONObject body = new JSONObject();
+        final JSONObject request = new JSONObject();
         request.put("Token", billingRequest.getToken());
         request.put("Correo", billingRequest.getCorreo());
         request.put("Suministro", billingRequest.getSuministro());
@@ -130,20 +150,23 @@ public class LuzDelSurServiceImpl implements LuzDelSurService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .flatMap(response -> {
-                    JSONObject jsonResponse = new JSONObject(response);
+                    final JSONObject jsonResponse = new JSONObject(response);
                     if (jsonResponse.optBoolean("success") && jsonResponse.has("datos")) {
-                        JSONObject datos = jsonResponse.getJSONObject("datos");
-                        String codigo = datos.optString("codigo");
+                        final JSONObject datos = jsonResponse.getJSONObject("datos");
+                        final String codigo = datos.optString("codigo");
                         if ("0".equals(codigo)) {
                             return Mono.just(mapToBillingResponse(datos));
-                        } else {
-                            String mensaje = datos.optString("mensajeUsuario", "Error desconocido");
+                        }
+                        else {
+                            final String mensaje = datos.optString("mensajeUsuario", "Error desconocido");
                             return Mono.error(new RuntimeException(mensaje));
                         }
-                    } else {
+                    }
+                    else {
                         return Mono.error(new RuntimeException("Respuesta inválida del servidor"));
                     }
                 })
-                .onErrorResume(e -> Mono.error(new RuntimeException("Error al obtener facturación: " + e.getMessage(), e)));
+                .onErrorResume(e -> Mono.error(new RuntimeException(
+                        "Error al obtener facturación: " + e.getMessage(), e)));
     }
 }
